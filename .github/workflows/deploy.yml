@@ -236,7 +236,6 @@ jobs:
     name: Backend E2E Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: [docker-build-backend]
     
     steps:
     - name: Checkout simple-relay repository
@@ -308,7 +307,6 @@ jobs:
     name: Billing E2E Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: [docker-build-billing]
     
     steps:
     - name: Checkout simple-relay repository
@@ -378,7 +376,7 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: [terraform-plan, docker-build-backend, docker-build-billing, docker-build-outbound, docker-build-frontend, backend-e2e-tests, billing-e2e-tests]
+    needs: [terraform-plan, docker-build-backend, docker-build-billing, docker-build-frontend, backend-e2e-tests, billing-e2e-tests]
     environment: ${{ inputs.deploy_environment }}
     concurrency: 
       group: deploy-${{ inputs.deploy_environment }}
