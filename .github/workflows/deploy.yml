@@ -89,7 +89,6 @@ jobs:
   docker-build-backend:
     name: Build and Push Backend Image
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     environment: ${{ inputs.deploy_environment }}
     
     steps:
@@ -125,7 +124,6 @@ jobs:
   docker-build-billing:
     name: Build and Push Billing Image
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     environment: ${{ inputs.deploy_environment }}
     
     steps:
@@ -161,7 +159,6 @@ jobs:
   docker-build-outbound:
     name: Build and Push Outbound Image
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     environment: ${{ inputs.deploy_environment }}
     
     steps:
@@ -197,7 +194,6 @@ jobs:
   docker-build-frontend:
     name: Build and Push Frontend Image
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     environment: ${{ inputs.deploy_environment }}
     env:
       BACKEND_URL: ${{ inputs.deploy_environment == 'production' && 'https://api.aifastlane.net' || 'https://staging-api.aifastlane.net' }}
@@ -235,7 +231,6 @@ jobs:
   backend-e2e-tests:
     name: Backend E2E Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
     steps:
     - name: Checkout simple-relay repository
@@ -306,7 +301,6 @@ jobs:
   billing-e2e-tests:
     name: Billing E2E Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
     steps:
     - name: Checkout simple-relay repository
@@ -375,7 +369,6 @@ jobs:
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: [terraform-plan, docker-build-backend, docker-build-billing, docker-build-frontend, backend-e2e-tests, billing-e2e-tests]
     environment: ${{ inputs.deploy_environment }}
     concurrency: 
