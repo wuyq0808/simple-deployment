@@ -28,7 +28,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
@@ -96,7 +96,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
@@ -132,7 +132,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
@@ -168,7 +168,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
@@ -206,7 +206,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
@@ -242,7 +242,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
@@ -314,7 +314,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
@@ -388,7 +388,7 @@ jobs:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
       with:
-        repository: yongqiwu/simple-relay
+        repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
 
