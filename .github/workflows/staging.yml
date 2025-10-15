@@ -1,0 +1,19 @@
+name: Staging Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      simple_relay_ref:
+        description: 'Branch or tag from simple-relay to deploy'
+        required: false
+        default: 'main'
+        type: string
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      deploy_environment: staging
+      simple_relay_ref: ${{ inputs.simple_relay_ref || 'main' }}
+    secrets: inherit
+
