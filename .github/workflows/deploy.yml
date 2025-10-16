@@ -23,6 +23,8 @@ jobs:
     name: Terraform Plan
     runs-on: ubuntu-latest
     environment: ${{ inputs.deploy_environment }}
+    outputs:
+      simple_relay_sha: ${{ steps.get-sha.outputs.sha }}
     
     steps:
     - name: Checkout simple-relay repository
@@ -31,6 +33,10 @@ jobs:
         repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Get simple-relay commit SHA
+      id: get-sha
+      run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -62,7 +68,7 @@ jobs:
       env:
         TF_VAR_api_base_url: ${{ secrets.API_BASE_URL }}
         TF_VAR_official_base_url: ${{ secrets.OFFICIAL_BASE_URL }}
-        TF_VAR_image_tag: ${{ github.sha }}
+        TF_VAR_image_tag: ${{ steps.get-sha.outputs.sha }}
         TF_VAR_service_name: simple-relay
         TF_VAR_billing_service_name: simple-relay-billing
         TF_VAR_frontend_service_name: simple-relay-frontend
@@ -90,6 +96,8 @@ jobs:
     name: Build and Push Backend Image
     runs-on: ubuntu-latest
     environment: ${{ inputs.deploy_environment }}
+    outputs:
+      simple_relay_sha: ${{ steps.get-sha.outputs.sha }}
     
     steps:
     - name: Checkout simple-relay repository
@@ -98,6 +106,10 @@ jobs:
         repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Get simple-relay commit SHA
+      id: get-sha
+      run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     - name: Google Auth
       uses: 'google-github-actions/auth@v2'
@@ -118,8 +130,8 @@ jobs:
     - name: Build and Push Backend Container
       working-directory: ./
       run: |-
-        docker build --platform linux/amd64 -f apps/backend/Dockerfile -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay:${{ github.sha }}" ./
-        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay:${{ github.sha }}"
+        docker build --platform linux/amd64 -f apps/backend/Dockerfile -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay:${{ steps.get-sha.outputs.sha }}" ./
+        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay:${{ steps.get-sha.outputs.sha }}"
 
   docker-build-billing:
     name: Build and Push Billing Image
@@ -133,6 +145,10 @@ jobs:
         repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Get simple-relay commit SHA
+      id: get-sha
+      run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     - name: Google Auth
       uses: 'google-github-actions/auth@v2'
@@ -153,8 +169,8 @@ jobs:
     - name: Build and Push Billing Container
       working-directory: ./
       run: |-
-        docker build --platform linux/amd64 -f apps/billing/Dockerfile -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-billing:${{ github.sha }}" ./
-        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-billing:${{ github.sha }}"
+        docker build --platform linux/amd64 -f apps/billing/Dockerfile -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-billing:${{ steps.get-sha.outputs.sha }}" ./
+        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-billing:${{ steps.get-sha.outputs.sha }}"
 
   docker-build-outbound:
     name: Build and Push Outbound Image
@@ -168,6 +184,10 @@ jobs:
         repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Get simple-relay commit SHA
+      id: get-sha
+      run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     - name: Google Auth
       uses: 'google-github-actions/auth@v2'
@@ -188,8 +208,8 @@ jobs:
     - name: Build and Push Outbound Container
       working-directory: ./apps/outbound
       run: |-
-        docker build --platform linux/amd64 -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay-outbound:${{ github.sha }}" .
-        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay-outbound:${{ github.sha }}"
+        docker build --platform linux/amd64 -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay-outbound:${{ steps.get-sha.outputs.sha }}" .
+        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay-outbound:${{ steps.get-sha.outputs.sha }}"
 
   docker-build-frontend:
     name: Build and Push Frontend Image
@@ -205,6 +225,10 @@ jobs:
         repository: wuyq0808/simple-relay
         ref: ${{ inputs.simple_relay_ref }}
         token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Get simple-relay commit SHA
+      id: get-sha
+      run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     - name: Google Auth
       uses: 'google-github-actions/auth@v2'
@@ -225,8 +249,8 @@ jobs:
     - name: Build and Push Frontend Container
       working-directory: ./apps/frontend
       run: |-
-        docker build --platform linux/amd64 --build-arg VITE_BACKEND_URL="${{ env.BACKEND_URL }}" -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-frontend:${{ github.sha }}" .
-        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-frontend:${{ github.sha }}"
+        docker build --platform linux/amd64 --build-arg VITE_BACKEND_URL="${{ env.BACKEND_URL }}" -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-frontend:${{ steps.get-sha.outputs.sha }}" .
+        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-frontend:${{ steps.get-sha.outputs.sha }}"
 
   backend-e2e-tests:
     name: Backend E2E Tests
@@ -408,7 +432,7 @@ jobs:
       env:
         TF_VAR_api_base_url: ${{ secrets.API_BASE_URL }}
         TF_VAR_official_base_url: ${{ secrets.OFFICIAL_BASE_URL }}
-        TF_VAR_image_tag: ${{ github.sha }}
+        TF_VAR_image_tag: ${{ needs.docker-build-backend.outputs.simple_relay_sha }}
         TF_VAR_service_name: simple-relay
         TF_VAR_billing_service_name: simple-relay-billing
         TF_VAR_frontend_service_name: simple-relay-frontend
