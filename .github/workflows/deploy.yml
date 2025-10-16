@@ -390,6 +390,40 @@ jobs:
           apps/billing/bin/
           apps/billing/e2e_test/
 
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout simple-relay repository
+      uses: actions/checkout@v4
+      with:
+        repository: wuyq0808/simple-relay
+        ref: ${{ inputs.simple_relay_ref }}
+        token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Install golangci-lint
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.61.0
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+    - name: Lint Backend
+      working-directory: ./apps/backend
+      run: golangci-lint run --timeout=5m
+
+    - name: Lint Billing
+      working-directory: ./apps/billing
+      run: golangci-lint run --timeout=5m
+
+    - name: Lint Outbound
+      working-directory: ./apps/outbound
+      run: golangci-lint run --timeout=5m
+
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
