@@ -1,0 +1,106 @@
+name: Outbound Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      simple_relay_ref:
+        description: 'Branch or tag from simple-relay to deploy'
+        required: false
+        default: 'main'
+        type: string
+
+env:
+  TF_VERSION: '1.5.0'
+  TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+
+jobs:
+  docker-build-outbound:
+    name: Build and Push Outbound Image
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout simple-relay repository
+      uses: actions/checkout@v4
+      with:
+        repository: wuyq0808/simple-relay
+        ref: ${{ inputs.simple_relay_ref || 'main' }}
+        token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Google Auth
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: Setup Google Cloud SDK
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: Docker Auth
+      id: docker-auth
+      uses: 'docker/login-action@v3'
+      with:
+        registry: ${{ env.REGION }}-docker.pkg.dev
+        username: _json_key
+        password: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Build and Push Outbound Container
+      working-directory: ./apps/outbound
+      run: |-
+        docker build --platform linux/amd64 -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay-outbound:${{ github.sha }}" .
+        docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/simple-relay/simple-relay-outbound:${{ github.sha }}"
+
+  terraform-outbound:
+    name: Deploy Outbound Infrastructure
+    runs-on: ubuntu-latest
+    needs: [docker-build-outbound]
+    concurrency:
+      group: deploy-outbound
+      cancel-in-progress: false
+
+    steps:
+    - name: Checkout simple-relay repository
+      uses: actions/checkout@v4
+      with:
+        repository: wuyq0808/simple-relay
+        ref: ${{ inputs.simple_relay_ref || 'main' }}
+        token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Google Auth
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: Setup Google Cloud SDK
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: Terraform Init
+      working-directory: ./terraform/outbound
+      run: |
+        terraform init \
+          -backend-config="bucket=simple-relay-outbound-terraform-state" \
+          -backend-config="prefix=outbound"
+
+    - name: Terraform Validate
+      working-directory: ./terraform/outbound
+      run: terraform validate
+
+    - name: Terraform Plan
+      working-directory: ./terraform/outbound
+      env:
+        TF_VAR_image_tag: ${{ github.sha }}
+        TF_VAR_artifact_registry_repository: simple-relay
+        TF_VAR_official_base_url: ${{ secrets.OFFICIAL_BASE_URL }}
+      run: terraform plan -input=false -no-color
+
+    - name: Terraform Apply
+      working-directory: ./terraform/outbound
+      env:
+        TF_VAR_image_tag: ${{ github.sha }}
+        TF_VAR_artifact_registry_repository: simple-relay
+        TF_VAR_official_base_url: ${{ secrets.OFFICIAL_BASE_URL }}
+      run: terraform apply -input=false -auto-approve -no-color
