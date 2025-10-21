@@ -390,10 +390,10 @@ jobs:
           apps/billing/bin/
           apps/billing/e2e_test/
 
-  lint:
-    name: Lint
+  lint-backend:
+    name: Lint Backend
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout simple-relay repository
       uses: actions/checkout@v4
@@ -416,18 +416,89 @@ jobs:
       working-directory: ./apps/backend
       run: golangci-lint run --timeout=5m
 
+  lint-billing:
+    name: Lint Billing
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout simple-relay repository
+      uses: actions/checkout@v4
+      with:
+        repository: wuyq0808/simple-relay
+        ref: ${{ inputs.simple_relay_ref }}
+        token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Install golangci-lint
+      run: |
+        # Install from source to match Go 1.24
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
     - name: Lint Billing
       working-directory: ./apps/billing
       run: golangci-lint run --timeout=5m
+
+  lint-outbound:
+    name: Lint Outbound
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout simple-relay repository
+      uses: actions/checkout@v4
+      with:
+        repository: wuyq0808/simple-relay
+        ref: ${{ inputs.simple_relay_ref }}
+        token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+
+    - name: Install golangci-lint
+      run: |
+        # Install from source to match Go 1.24
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
     - name: Lint Outbound
       working-directory: ./apps/outbound
       run: golangci-lint run --timeout=5m
 
+  lint-frontend:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout simple-relay repository
+      uses: actions/checkout@v4
+      with:
+        repository: wuyq0808/simple-relay
+        ref: ${{ inputs.simple_relay_ref }}
+        token: ${{ secrets.SIMPLE_RELAY_ACCESS_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: apps/frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./apps/frontend
+      run: npm ci
+
+    - name: Lint Frontend
+      working-directory: ./apps/frontend
+      run: npm run lint
+
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    needs: [terraform-plan, docker-build-backend, docker-build-billing, docker-build-outbound, docker-build-frontend, backend-e2e-tests, billing-e2e-tests]
+    needs: [terraform-plan, docker-build-backend, docker-build-billing, docker-build-outbound, docker-build-frontend, backend-e2e-tests, billing-e2e-tests, lint-backend, lint-billing, lint-outbound, lint-frontend]
     environment: ${{ inputs.deploy_environment }}
     concurrency: 
       group: deploy-${{ inputs.deploy_environment }}
