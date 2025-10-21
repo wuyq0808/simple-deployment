@@ -518,13 +518,56 @@ jobs:
         cache: 'npm'
         cache-dependency-path: apps/frontend/package-lock.json
 
+    - name: Start Firestore Emulator
+      run: |
+        # Check if e2e_test directory has docker-compose file
+        if [ -f apps/frontend/e2e_test/docker-compose.test.yml ]; then
+          cd apps/frontend/e2e_test
+          docker compose -f docker-compose.test.yml up -d
+        else
+          # Use a simple Firestore emulator setup
+          docker run -d -p 8080:8080 gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators gcloud beta emulators firestore start --host-port=0.0.0.0:8080
+        fi
+
+        # Wait for emulator to be ready
+        echo "Waiting for Firestore emulator to start..."
+        for i in {1..30}; do
+          if curl -s http://localhost:8080 > /dev/null 2>&1; then
+            echo "Firestore emulator is ready"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "Firestore emulator failed to start"
+            exit 1
+          fi
+          sleep 1
+        done
+
     - name: Install dependencies
       working-directory: ./apps/frontend
       run: npm ci
 
+    - name: Build frontend server
+      working-directory: ./apps/frontend
+      run: npm run build:server
+
     - name: Run E2E Tests
       working-directory: ./apps/frontend
+      env:
+        FIRESTORE_EMULATOR_HOST: localhost:8080
+        GCP_PROJECT_ID: test-project
+        FIRESTORE_DATABASE_NAME: (default)
       run: npm run test:e2e
+
+    - name: Stop Firestore Emulator
+      if: always()
+      run: |
+        if [ -f apps/frontend/e2e_test/docker-compose.test.yml ]; then
+          cd apps/frontend/e2e_test
+          docker compose -f docker-compose.test.yml down
+        else
+          docker stop $(docker ps -q --filter ancestor=gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators) || true
+        fi
 
   terraform-apply:
     name: Terraform Apply
