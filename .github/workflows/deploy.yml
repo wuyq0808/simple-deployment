@@ -302,8 +302,8 @@ jobs:
         DISABLE_IDENTITY_TOKEN: true
       run: |
         # Build the backend binary
-        go build -o bin/backend-test cmd/main.go
-        
+        go build -o bin/backend-test ./cmd
+
         # Run E2E tests
         go test -v ./e2e_test/... -run "TestE2E" -timeout 60s
 
