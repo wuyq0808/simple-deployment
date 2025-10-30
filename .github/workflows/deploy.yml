@@ -489,7 +489,7 @@ jobs:
 
     - name: Run Backend Unit Tests
       working-directory: ./apps/backend
-      run: go test -v ./... -count=1 -short
+      run: go test -v $(go list ./... | grep -v /e2e_test) -count=1
 
   test-billing:
     name: Billing Unit Tests
@@ -512,7 +512,7 @@ jobs:
 
     - name: Run Billing Unit Tests
       working-directory: ./apps/billing
-      run: go test -v ./... -count=1 -short
+      run: go test -v $(go list ./... | grep -v /e2e_test) -count=1
 
   test-frontend:
     name: Frontend Unit Tests
